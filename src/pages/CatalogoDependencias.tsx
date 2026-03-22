@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Search, Plus, MapPin, CheckCircle2, ChevronDown, GraduationCap, Building2, ShieldAlert, Heart, Scale, Users, Phone, Mail, Clock, User, Info, X, Briefcase } from 'lucide-react';
+import { Search, Plus, MapPin, CheckCircle2, ChevronDown, GraduationCap, Building2, ShieldAlert, Heart, Scale, Users, Phone, Mail, Clock, User, Info, X, Briefcase, AlertTriangle } from 'lucide-react';
 
 type StatusColor = 'green' | 'yellow' | 'red';
 
@@ -229,10 +229,19 @@ const categorias = [
   { id: 'justicia', label: 'Justicia / Fiscalías', icon: <Scale size={16} /> },
 ];
 
-export default function CatalogoDependencias({ onDependenciaSelected }: { onDependenciaSelected?: () => void }) {
+export default function CatalogoDependencias({ 
+  selectedDependenciaId,
+  onDependenciaSelected,
+  onCancelSelection
+}: { 
+  selectedDependenciaId?: number | null,
+  onDependenciaSelected?: (id: number) => void,
+  onCancelSelection?: () => void
+}) {
   const [categoriaActiva, setCategoriaActiva] = useState('todos');
   const [busqueda, setBusqueda] = useState('');
   const [dependenciaSeleccionada, setDependenciaSeleccionada] = useState<Dependencia | null>(null);
+  const [showConfirmDialog, setShowConfirmDialog] = useState(false);
 
   // Helpers para colores basados en el status
   const getStatusStyles = (color: StatusColor) => {
@@ -514,18 +523,71 @@ export default function CatalogoDependencias({ onDependenciaSelected }: { onDepe
                   onClick={() => setDependenciaSeleccionada(null)}
                   className="flex-1 sm:flex-none px-5 py-2.5 text-slate-600 font-bold hover:bg-slate-200 bg-slate-100 rounded-xl transition-colors focus:outline-none focus:ring-2 focus:ring-slate-300"
                 >
+                  Cerrar
+                </button>
+                
+                {selectedDependenciaId === dependenciaSeleccionada.id ? (
+                  <button 
+                    disabled
+                    className="flex-1 sm:flex-none px-6 py-2.5 bg-emerald-100 text-emerald-700 font-bold rounded-xl flex items-center justify-center gap-2 cursor-not-allowed"
+                  >
+                    <CheckCircle2 size={18} />
+                    Dependencia Seleccionada
+                  </button>
+                ) : selectedDependenciaId ? (
+                  <button 
+                    disabled
+                    className="flex-1 sm:flex-none px-6 py-2.5 bg-slate-200 text-slate-400 font-bold rounded-xl flex items-center justify-center gap-2 cursor-not-allowed"
+                  >
+                    Ya tienes una solicitud activa
+                  </button>
+                ) : (
+                  <button 
+                    onClick={() => setShowConfirmDialog(true)}
+                    className="flex-1 sm:flex-none px-6 py-2.5 bg-[#1B365D] hover:bg-[#152b4a] text-white font-bold rounded-xl flex items-center justify-center gap-2 transition-all shadow-md shadow-[#1B365D]/20 focus:outline-none focus:ring-4 focus:ring-[#1B365D]/30 active:scale-[0.98]"
+                  >
+                    Solicitar Vacante
+                    <CheckCircle2 size={18} />
+                  </button>
+                )}
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Modal de Confirmación */}
+      {showConfirmDialog && dependenciaSeleccionada && (
+        <div className="fixed inset-0 z-[60] flex items-center justify-center p-4 sm:p-6">
+          <div className="absolute inset-0 bg-slate-900/60 backdrop-blur-sm" onClick={() => setShowConfirmDialog(false)}></div>
+          <div className="relative bg-white rounded-2xl shadow-2xl w-full max-w-md overflow-hidden animate-in zoom-in-95 duration-200">
+            <div className="p-6 text-center">
+              <div className="w-16 h-16 bg-rose-100 text-rose-600 rounded-full flex items-center justify-center mx-auto mb-4">
+                <AlertTriangle size={32} strokeWidth={2} />
+              </div>
+              <h3 className="text-xl font-extrabold text-slate-900 mb-2">Aviso Importante</h3>
+              <p className="text-slate-600 mb-6">
+                Una vez que confirmes tu selección, <strong className="text-rose-600">NO podrás cambiar de dependencia</strong> posteriormente.
+                <br /><br />
+                ¿Estás completamente seguro de solicitar esta vacante en <strong>{dependenciaSeleccionada.title}</strong>?
+              </p>
+              <div className="flex gap-3">
+                <button 
+                  onClick={() => setShowConfirmDialog(false)}
+                  className="flex-1 px-4 py-3 text-slate-600 font-bold hover:bg-slate-100 bg-slate-50 rounded-xl transition-colors"
+                >
                   Cancelar
                 </button>
                 <button 
                   onClick={() => {
                     alert('¡Solicitud enviada con éxito! La dependencia revisará tu perfil. (Simulación)');
+                    setShowConfirmDialog(false);
                     setDependenciaSeleccionada(null);
-                    if (onDependenciaSelected) onDependenciaSelected();
+                    if (onDependenciaSelected) onDependenciaSelected(dependenciaSeleccionada.id);
                   }}
-                  className="flex-1 sm:flex-none px-6 py-2.5 bg-[#1B365D] hover:bg-[#152b4a] text-white font-bold rounded-xl flex items-center justify-center gap-2 transition-all shadow-md shadow-[#1B365D]/20 focus:outline-none focus:ring-4 focus:ring-[#1B365D]/30 active:scale-[0.98]"
+                  className="flex-1 px-4 py-3 bg-[#1B365D] hover:bg-[#152b4a] text-white font-bold rounded-xl transition-colors shadow-md shadow-[#1B365D]/20"
                 >
-                  Solicitar Vacante
-                  <CheckCircle2 size={18} />
+                  Sí, confirmar
                 </button>
               </div>
             </div>

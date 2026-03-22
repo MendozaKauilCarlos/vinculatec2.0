@@ -4,7 +4,7 @@ import CatalogoDependencias from './CatalogoDependencias';
 import MisDocumentos from './MisDocumentos';
 
 export default function PortalAlumno({ onLogout }: { onLogout: () => void }) {
-  const [hasSelectedDependencia, setHasSelectedDependencia] = useState(false);
+  const [selectedDependenciaId, setSelectedDependenciaId] = useState<number | null>(null);
   const [activeTab, setActiveTab] = useState<'plazas' | 'documentos' | 'perfil'>('plazas');
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
@@ -15,7 +15,7 @@ export default function PortalAlumno({ onLogout }: { onLogout: () => void }) {
   ];
 
   const handleTabClick = (id: string) => {
-    if (!hasSelectedDependencia && id !== 'plazas') {
+    if (!selectedDependenciaId && id !== 'plazas') {
       alert('Primero debes seleccionar una dependencia (Solicitar Vacante) para habilitar esta sección.');
       return;
     }
@@ -42,7 +42,8 @@ export default function PortalAlumno({ onLogout }: { onLogout: () => void }) {
             <p className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-4 px-3">Menú Principal</p>
             <nav className="space-y-2">
               {navItems.map((item) => {
-                const isLocked = !hasSelectedDependencia && item.id !== 'plazas';
+                const isLocked = !selectedDependenciaId && item.id !== 'plazas';
+                if (isLocked) return null;
                 return (
                   <button
                     key={item.id}
@@ -111,7 +112,8 @@ export default function PortalAlumno({ onLogout }: { onLogout: () => void }) {
           <div className="absolute top-16 left-0 right-0 bottom-0 bg-white animate-in slide-in-from-top-4 flex flex-col">
             <nav className="p-4 space-y-2 flex-1">
               {navItems.map((item) => {
-                const isLocked = !hasSelectedDependencia && item.id !== 'plazas';
+                const isLocked = !selectedDependenciaId && item.id !== 'plazas';
+                if (isLocked) return null;
                 return (
                   <button
                     key={item.id}
@@ -157,10 +159,14 @@ export default function PortalAlumno({ onLogout }: { onLogout: () => void }) {
           {activeTab === 'documentos' && <MisDocumentos />}
           {activeTab === 'plazas' && (
             <CatalogoDependencias 
-              onDependenciaSelected={() => {
-                setHasSelectedDependencia(true);
+              selectedDependenciaId={selectedDependenciaId}
+              onDependenciaSelected={(id) => {
+                setSelectedDependenciaId(id);
                 setActiveTab('documentos');
               }} 
+              onCancelSelection={() => {
+                setSelectedDependenciaId(null);
+              }}
             />
           )}
           {activeTab === 'perfil' && (
